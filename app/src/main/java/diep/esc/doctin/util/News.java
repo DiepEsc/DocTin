@@ -1,6 +1,5 @@
-package diep.esc.demo.util;
+package diep.esc.doctin.util;
 
-import android.graphics.Bitmap;
 import android.util.Log;
 import android.util.Xml;
 
@@ -17,25 +16,28 @@ import java.util.regex.Pattern;
  */
 public class News {
     private String title;
-    private String details;
+    private String time;
     private String summary;
     private String imageUrl;
     private String url;
-    private Bitmap image;
+	//dhdhdhdhdhd
+//    private Bitmap image;
+    private String imagePath;
     private boolean hasRead;
 
-    public News(String url, String title, String details, String summary, String imageUrl, boolean hasRead) {
+    public News(String url, String title, String time, String summary, String imageUrl, String imagePath, boolean hasRead) {
         this.url=url;
         this.title = title;
-        this.details = details;
+        this.time = time;
         this.summary = summary;
         this.imageUrl=imageUrl;
-        image=null;
+//        image=null;
+        this.imagePath=imagePath;
         this.hasRead=hasRead;
     }
 
     public News() {
-        this("","","","","",false);
+        this("","","","","","",false);
     }
 
     public String getUrl() {
@@ -54,12 +56,12 @@ public class News {
         this.title = title;
     }
 
-    public String getInfo() {
-        return details;
+    public String getTime() {
+        return time;
     }
 
-    public void setDetails(String details) {
-        this.details = details;
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public String getSummary() {
@@ -119,11 +121,19 @@ public class News {
         this.imageUrl = imageUrl;
     }
 
-    public Bitmap getImage() {
-        return image;
+//    public Bitmap getImage() {
+//        return image;
+//    }
+//    public boolean isLoadedImage(){
+//        return image!=null;
+//    }
+
+    public String getImagePath() {
+        return imagePath;
     }
-    public boolean isLoadedImage(){
-        return image!=null;
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     public boolean hasRead() {
@@ -132,5 +142,12 @@ public class News {
 
     public void setHasRead(boolean hasRead) {
         this.hasRead = hasRead;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o==null||!(o instanceof News)) return false;
+        //Log.d("log_M", "equals "+(((News)o).url.equals(url)));
+        return ((News)o).url.equals(url);
     }
 }

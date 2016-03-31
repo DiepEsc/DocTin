@@ -1,4 +1,4 @@
-package diep.esc.demo.doctin.gui;
+package diep.esc.doctin.gui;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -6,24 +6,25 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import diep.esc.demo.doctin.R;
-import diep.esc.demo.util.News;
+import diep.esc.doctin.R;
+import diep.esc.doctin.util.News;
 
 /**
  * Created by Diep on 28/03/2016.
  */
 public class RViewHolder extends RecyclerView.ViewHolder {
     private ImageView imgView;
-    private TextView viewTitle,viewInfo, viewSummary;
+    private TextView viewTitle, viewInfo, viewSummary;
     private ViewGroup layout;
-
+    private int itemIndex;
+//    private News itemData;
     public RViewHolder(View itemView) {
         super(itemView);
-        imgView= (ImageView) itemView.findViewById(R.id.imageView);
-        viewTitle= (TextView) itemView.findViewById(R.id.news_title);
-        viewInfo= (TextView) itemView.findViewById(R.id.news_time_site_category);
-        viewSummary= (TextView) itemView.findViewById(R.id.news_summary);
-        layout=(ViewGroup)itemView.findViewById(R.id.item_layout);
+        imgView = (ImageView) itemView.findViewById(R.id.imageView);
+        viewTitle = (TextView) itemView.findViewById(R.id.news_title);
+        viewInfo = (TextView) itemView.findViewById(R.id.news_time_site_category);
+        viewSummary = (TextView) itemView.findViewById(R.id.news_summary);
+        layout = (ViewGroup) itemView.findViewById(R.id.item_layout);
     }
 
 
@@ -45,5 +46,13 @@ public class RViewHolder extends RecyclerView.ViewHolder {
 
     public ViewGroup getLayout() {
         return layout;
+    }
+
+    public int getItemIndex() {
+        return itemIndex;
+    }
+
+    public void setItemIndex(int itemIndex) {
+        this.itemIndex = itemIndex;
     }
 }

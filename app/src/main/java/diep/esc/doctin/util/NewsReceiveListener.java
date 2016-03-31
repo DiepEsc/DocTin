@@ -1,4 +1,6 @@
-package diep.esc.demo.util;
+package diep.esc.doctin.util;
+
+import com.android.volley.VolleyError;
 
 import java.util.ArrayList;
 
@@ -7,5 +9,6 @@ import java.util.ArrayList;
  */
 public interface NewsReceiveListener {
     void receivedNews(ArrayList<News> news);
+    void receivedError(VolleyError error);
     void receivedImage();
 }

@@ -1,9 +1,10 @@
-package diep.esc.demo.util;
+package diep.esc.doctin.util;
 
 
 import android.content.Context;
 import android.util.Log;
 import android.util.Xml;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -22,12 +23,12 @@ import java.util.ArrayList;
 /**
  * Created by Diep on 29/03/2016.
  */
-public class NewsUtils {
+public class RssNewsUtils {
     private RequestQueue requestQueue;
 
     private NewsReceiveListener listener=null;
 
-    public NewsUtils(Context context, NewsReceiveListener listener) {
+    public RssNewsUtils(Context context, NewsReceiveListener listener) {
 //        this.context = context;
         requestQueue = Volley.newRequestQueue(context);
         this.listener=listener;
@@ -47,7 +48,8 @@ public class NewsUtils {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("D_log", "onErrorResponse: "+error.toString());
+                listener.receivedError(error);
+                //Log.e("D_log", "onErrorResponse: "+error.toString());
             }
         });
         requestQueue.add(stringRequest);
@@ -81,7 +83,7 @@ public class NewsUtils {
                                 news.setUrl(text);
 //                                log("link: "+text);
                             }else if("pubDate".equals((parser.getName()))){
-                                news.setDetails(text);
+                                news.setTime(text);
 //                                log("date: "+text);
                             }
 
