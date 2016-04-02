@@ -1,5 +1,6 @@
 package diep.esc.doctin.util;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.util.Xml;
 
@@ -15,13 +16,14 @@ import java.util.regex.Pattern;
  * Created by Diep on 29/03/2016.
  */
 public class News {
+    private static final String TAG="log_News";
     private String title;
     private String time;
     private String summary;
     private String imageUrl;
     private String url;
 	//dhdhdhdhdhd
-//    private Bitmap image;
+    private Bitmap image;
     private String imagePath;
     private boolean hasRead;
 
@@ -31,7 +33,7 @@ public class News {
         this.time = time;
         this.summary = summary;
         this.imageUrl=imageUrl;
-//        image=null;
+        image=null;
         this.imagePath=imagePath;
         this.hasRead=hasRead;
     }
@@ -45,7 +47,7 @@ public class News {
     }
 
     public void setUrl(String url) {
-        this.url = url;
+        if(url!=null&&url.length()>0) this.url = url;
     }
 
     public String getTitle() {
@@ -69,20 +71,33 @@ public class News {
     }
 
     public void extractAndSetDescription(String text){
-        Matcher matcher=Pattern.compile("src=\"[^\"]+").matcher(text);
+        text=text.replaceFirst("<ul>.+</ul>","");
+        Matcher matcher=Pattern.compile("src=(\"[^\"]+|[^ ]+)").matcher(text);
         if(matcher.find()){
-            imageUrl=matcher.group().substring(5);
+            String t=matcher.group();
+            if(t.charAt(4)=='"'){
+                imageUrl=t.substring(5);
+            }
+            else imageUrl=t.substring(4);
         }
-        matcher=Pattern.compile("(^|>)[^<]+(<|$)").matcher(text);
+        Log.d(TAG, "extractAndSetDescription "+imageUrl);
+        matcher=getSummaryFilter().matcher(text);
         while (matcher.find()){
             if(summary.length()!=0){
                 summary=summary+" ";
             }
             String found=matcher.group();
-            if(found.charAt(0)=='>') found=found.substring(1);
-            if(found.charAt(found.length()-1)=='<') found=found.substring(0, found.length() - 2);
+            int start=found.indexOf('>')+1;
+            int end=found.lastIndexOf('<');
+            if(start<0) start=0;
+            if(end<=0) end=found.length();
+//            Log.d("log_N", "extractAndSetDescription "+found);
+            found=found.substring(start,end);
             summary=summary+found.trim();
         }
+    }
+    protected Pattern getSummaryFilter(){
+        return Pattern.compile("(^|>)[^<]+(<|$)");
     }
     public void extractAndSetDescription2(String text){
         text="<esc>"+text+"</esc>";
@@ -117,16 +132,13 @@ public class News {
         return imageUrl;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public Bitmap getImage() {
+        return image;
     }
 
-//    public Bitmap getImage() {
-//        return image;
-//    }
-//    public boolean isLoadedImage(){
-//        return image!=null;
-//    }
+    public void setImage(Bitmap image) {
+        this.image = image;
+    }
 
     public String getImagePath() {
         return imagePath;

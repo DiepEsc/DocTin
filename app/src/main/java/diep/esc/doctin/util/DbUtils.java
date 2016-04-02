@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -18,40 +19,25 @@ public class DbUtils {
     private SQLiteDatabase database;
 //    private Context context;
     private SQLiteOpenHelper helper;
+    private NewsLoadedListener listener;
 
-    public DbUtils(Context context) {
+    public DbUtils(Context context, NewsLoadedListener listener) {
 //        this.context = context;
         helper = new NewsDbHelper(context);
         database=helper.getWritableDatabase();
+        this.listener=listener;
     }
 
     public void storeNewsList(List<News> lst){
 
         clearNewsOnDb();
-//        logDataBase(db, NewsDbHelper.TABLE_NAME);
         for(int i=0;i<lst.size();i++){
             storeNews(lst.get(i));
         }
         logDataBase(NewsDbHelper.TABLE_NAME);
     }
-    public ArrayList<News> loadNews(){
-        SQLiteDatabase db=helper.getReadableDatabase();
-        Cursor cur =db.rawQuery("select * from " + NewsDbHelper.TABLE_NAME, new String[]{});
-        ArrayList<News> res=new ArrayList<>(cur.getCount());
-        while (cur.moveToNext()){
-            res.add(new News(
-                    cur.getString(cur.getColumnIndex(NewsDbHelper.LINK)),
-                    cur.getString(cur.getColumnIndex(NewsDbHelper.TITLE)),
-                    cur.getString(cur.getColumnIndex(NewsDbHelper.TIME)),
-                    cur.getString(cur.getColumnIndex(NewsDbHelper.SUMMARY)),
-                    cur.getString(cur.getColumnIndex(NewsDbHelper.IMAGE_URL)),
-                    cur.getString(cur.getColumnIndex(NewsDbHelper.IMAGE_TMP_PATH)),
-                    cur.getInt(cur.getColumnIndex(NewsDbHelper.HAS_READ)) == 1
-            ));
-            Log.d(TAG, cur.getString(cur.getColumnIndex(NewsDbHelper.HAS_READ))
-                    +"loadNews "+(cur.getInt(cur.getColumnIndex(NewsDbHelper.HAS_READ))==1));
-        }
-        return res;
+    public void startLoadNews(){
+        new LoadingNewTask().execute();
     }
 
     public void storeNews(News news) {
@@ -130,6 +116,43 @@ public class DbUtils {
             onUpgrade(db, oldVersion, newVersion);
         }
     }
+    class LoadingNewTask extends AsyncTask<Void, Void, ArrayList<News>>{
+
+        @Override
+        protected ArrayList<News> doInBackground(Void... params) {
+            logDataBase(NewsDbHelper.TABLE_NAME);
+            return loadNews();
+        }
+        public ArrayList<News> loadNews(){
+            SQLiteDatabase db=helper.getReadableDatabase();
+            Cursor cur =db.rawQuery("select * from " + NewsDbHelper.TABLE_NAME, new String[]{});
+            ArrayList<News> res=new ArrayList<>(cur.getCount());
+            if(isCancelled()) return res;
+            while (cur.moveToNext()){
+                if(isCancelled()) break;
+                res.add(new News(
+                        cur.getString(cur.getColumnIndex(NewsDbHelper.LINK)),
+                        cur.getString(cur.getColumnIndex(NewsDbHelper.TITLE)),
+                        cur.getString(cur.getColumnIndex(NewsDbHelper.TIME)),
+                        cur.getString(cur.getColumnIndex(NewsDbHelper.SUMMARY)),
+                        cur.getString(cur.getColumnIndex(NewsDbHelper.IMAGE_URL)),
+                        cur.getString(cur.getColumnIndex(NewsDbHelper.IMAGE_TMP_PATH)),
+                        cur.getInt(cur.getColumnIndex(NewsDbHelper.HAS_READ)) == 1
+                ));
+                Log.d(TAG, cur.getString(cur.getColumnIndex(NewsDbHelper.HAS_READ))
+                        +"loadNews "+(cur.getInt(cur.getColumnIndex(NewsDbHelper.HAS_READ))==1));
+            }
+            return res;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<News> newses) {
+            listener.receivedNews(newses);
+        }
+    }
+
+
+
     public void logDataBase(String table){
         Cursor cur =database.rawQuery("select * from "+table,new String[]{});
         Log.d(TAG, "logDataBase:");

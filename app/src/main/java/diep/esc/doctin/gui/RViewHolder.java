@@ -1,5 +1,6 @@
 package diep.esc.doctin.gui;
 
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ public class RViewHolder extends RecyclerView.ViewHolder {
     private TextView viewTitle, viewInfo, viewSummary;
     private ViewGroup layout;
     private int itemIndex;
+    private Bitmap image;
 //    private News itemData;
     public RViewHolder(View itemView) {
         super(itemView);
@@ -25,8 +27,13 @@ public class RViewHolder extends RecyclerView.ViewHolder {
         viewInfo = (TextView) itemView.findViewById(R.id.news_time_site_category);
         viewSummary = (TextView) itemView.findViewById(R.id.news_summary);
         layout = (ViewGroup) itemView.findViewById(R.id.item_layout);
+        image=null;
     }
 
+
+    public void setImage(Bitmap image) {
+        this.image = image;
+    }
 
     public ImageView getImgView() {
         return imgView;

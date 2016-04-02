@@ -1,5 +1,7 @@
 package diep.esc.doctin.gui;
 
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -7,11 +9,14 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import diep.esc.doctin.R;
 import diep.esc.doctin.util.DbUtils;
@@ -24,6 +29,11 @@ public class MainActivity extends AppCompatActivity implements NewsReceiveListen
     private RecyclerView recyclerView;
     private RViewAdapter adapter;
     private DbUtils dbUtils;
+    private RssNewsUtils rssUtils;
+    private boolean refreshFlag=false;
+    private ProgressBar mProgressBar;
+
+    private String rssLink="http://news.zing.vn/rss/trang-chu.rss";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,18 +50,18 @@ public class MainActivity extends AppCompatActivity implements NewsReceiveListen
                 return params;
             }
         });
-        dbUtils=new DbUtils(this);
-        adapter.setListOfNews(dbUtils.loadNews());
+        mProgressBar= (ProgressBar) findViewById(R.id.progressBar2);
+        dbUtils=new DbUtils(this,this);
+        rssUtils=new RssNewsUtils(this, this);
         if(savedInstanceState==null) {
-            new RssNewsUtils(this, this).startGetNews("http://vietbao.vn/rss2/trang-nhat.rss");
+            refreshFlag=true;
         }
-
+        dbUtils.startLoadNews();
 
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -64,30 +74,49 @@ public class MainActivity extends AppCompatActivity implements NewsReceiveListen
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id){
+            case R.id.action_settings: return true;
+            case R.id.action_refresh:
+                mProgressBar.setVisibility(View.VISIBLE);
+                dbUtils.startLoadNews();
+                break;
         }
+
 
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void receivedNews(ArrayList<News> news) {
-
-        //new StoreNewsTask().execute(news.get(0));
-//        adapter.setListOfNews(news);
-        for(int i=0;i<news.size();i++){
-            News newNews=news.get(i);
-            for(int j=0;j<adapter.getListOfNews().size();j++){
-                News oldNew=adapter.getListOfNews().get(j);
-                if(newNews.equals(oldNew)) {
-                    newNews.setHasRead(oldNew.hasRead());
-                    break;
+        if(refreshFlag){
+            refreshFlag=false;
+            rssUtils.startGetNews(rssLink);
+        }
+        else {
+            for (int i = 0; i < news.size(); i++) {
+                News newNews = news.get(i);
+                for (int j = 0; j < adapter.getListOfNews().size(); j++) {
+                    News oldNew = adapter.getListOfNews().get(j);
+                    if (newNews.equals(oldNew)) {
+                        Log.d(TAG, "receivedNews eq");
+                        newNews.setImagePath(oldNew.getImagePath());
+                        newNews.setHasRead(oldNew.hasRead());
+                        break;
+                    }
                 }
             }
+            mProgressBar.setVisibility(View.INVISIBLE);
         }
         adapter.setListOfNews(news);
-        //adapter.notifyDataSetChanged();
+//        int count=0;
+//        for(int i=0;i<adapter.getListOfNews().size();i++){
+//            String imgPath=adapter.getListOfNews().get(i).getImagePath();
+//            if (imgPath == null || imgPath.length() == 0) {
+//                count++;
+//                rssUtils.startGetImage(adapter.getListOfNews().get(i),i,i+".jpg",80,80);
+//            }
+//        }
+//        Log.d(TAG, "receivedNews download: " + count + " images");
     }
 
     @Override
@@ -96,8 +125,8 @@ public class MainActivity extends AppCompatActivity implements NewsReceiveListen
     }
 
     @Override
-    public void receivedImage() {
-
+    public void imageAttached(int itemIndex) {
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -113,12 +142,13 @@ public class MainActivity extends AppCompatActivity implements NewsReceiveListen
         dbUtils.storeNewsList(adapter.getListOfNews());
         super.onStop();
     }
-    //    class StoreNewsTask extends AsyncTask<List<News>,Void,Void>{
-//
-//        @Override
-//        protected Void doInBackground(List<News>... params) {
-//            dbUtils.storeNewsList(params[0]);
-//            return null;
-//        }
-//    }
+
+    @Override
+    protected void onDestroy() {
+        for(int i=0;i<adapter.getListOfNews().size();i++){
+            Bitmap bitmap=adapter.getListOfNews().get(i).getImage();
+            if(bitmap!=null&&!bitmap.isRecycled()) bitmap.recycle();
+        }
+        super.onDestroy();
+    }
 }

@@ -1,12 +1,16 @@
 package diep.esc.doctin.gui;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,24 +26,6 @@ public class RViewAdapter extends RecyclerView.Adapter<RViewHolder> {
     private View.OnLongClickListener longClickListener;
     private View.OnClickListener clickListener;
 
-    class DelayerToNotifiDataChanged extends AsyncTask<Void,Void,Void>{
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                Thread.sleep(60);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            notifyDataSetChanged();
-        }
-    }
-
     public RViewAdapter() {
         longClickListener= new View.OnLongClickListener() {
             @Override
@@ -47,14 +33,21 @@ public class RViewAdapter extends RecyclerView.Adapter<RViewHolder> {
                 RViewHolder holder= (RViewHolder) v.getTag();
                 News news=listOfNews.get(holder.getItemIndex());
                 news.setHasRead(!news.hasRead());
-                new DelayerToNotifiDataChanged().execute();
+                new DelayerToNotifyDataChanged().execute();
                 return true;
             }
         };
         clickListener=new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(),"click",Toast.LENGTH_SHORT).show();
+                RViewHolder holder= (RViewHolder) v.getTag();
+                News news=listOfNews.get(holder.getItemIndex());
+                Intent intent=new Intent(v.getContext(),NewsReaderActivity.class);
+                intent.putExtra("url",news.getUrl());
+                news.setHasRead(true);
+                v.getContext().startActivity(intent);
+                notifyDataSetChanged();
+                //Toast.makeText(v.getContext(),"click",Toast.LENGTH_SHORT).show();
             }
         };
     }
@@ -73,8 +66,30 @@ public class RViewAdapter extends RecyclerView.Adapter<RViewHolder> {
         rViewHolder.getViewInfo().setText(news.getTime());
         rViewHolder.getViewSummary().setText(news.getSummary());
         rViewHolder.getViewTitle().setText(news.getTitle());
-       //Bitmap bitmap=news.getImage();
-        //rViewHolder.getImgView().setImageBitmap(bitmap);
+        if(news.getImage()!=null){
+            rViewHolder.getImgView().setImageBitmap(news.getImage());
+            Log.d(TAG, "onBindViewHolder img not nu;ll;");
+        }
+        else{//Check local image and read it if exist.
+            String path=listOfNews.get(i).getImagePath();
+            if(path!=null&&path.length()>0&& new File(path).exists()){
+                Log.d(TAG, "onBindViewHolder read local img");
+                Bitmap readImg=BitmapFactory.decodeFile(path);
+                if(readImg==null||readImg.getHeight()==0){
+                    Log.d(TAG, "onBindViewHolder local img is empty");
+                }
+                listOfNews.get(i).setImage(readImg);
+                rViewHolder.getImgView().setImageBitmap(readImg);
+            }
+            else{
+                if(path==null){
+                    Log.d(TAG, "onBindViewHolder path null");
+                }
+                else if(path.length()==0) Log.d(TAG, "onBindViewHolder path len0");
+                else if (!new File(path).exists()) Log.d(TAG, "onBindViewHolder File do not exist");
+                else Log.d(TAG, "onBindViewHolder wtf");
+            }
+        }
         rViewHolder.setItemIndex(i);
         rViewHolder.getLayout().setTag(rViewHolder);
         if(news.hasRead()){
@@ -105,8 +120,21 @@ public class RViewAdapter extends RecyclerView.Adapter<RViewHolder> {
         return listOfNews;
     }
 
-//    @Override
-//    public long getItemId(int position) {
-//        return position;
-//    }
+    class DelayerToNotifyDataChanged extends AsyncTask<Void,Void,Void>{
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            notifyDataSetChanged();
+        }
+    }
 }

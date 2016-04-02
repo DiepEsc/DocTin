@@ -5,6 +5,7 @@
     android:background="@drawable/itembg"
     android:id="@+id/item_layout"
     android:clickable="true"
+    android:longClickable="true"
     android:orientation="vertical">
 
     <ImageView
@@ -12,6 +13,7 @@
         android:layout_width="wrap_content"
         android:minWidth="80dp"
         android:minHeight="80dp"
+        android:layout_marginRight="6dp"
         android:layout_height="wrap_content" />
 
     <TextView
