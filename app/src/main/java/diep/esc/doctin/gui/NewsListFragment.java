@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,24 +21,55 @@ import java.io.File;
 import java.util.ArrayList;
 
 import diep.esc.doctin.R;
-import diep.esc.doctin.gui.adapter.RViewAdapter;
-import diep.esc.doctin.util.DbUtils;
+import diep.esc.doctin.gui.adapter.MyRecyclerViewAdapter;
+import diep.esc.doctin.util.DatabaseUtils;
 import diep.esc.doctin.util.News;
 import diep.esc.doctin.util.NewsReceiveListener;
 import diep.esc.doctin.util.OptionsUtils;
 import diep.esc.doctin.util.RssNewsUtils;
 
+/**
+ * The fragment shows a list of newses
+ *
+ * @author Diep
+ */
 public class NewsListFragment extends Fragment implements NewsReceiveListener {
-    private static final String TAG = "log_List";
-    private RecyclerView recyclerView;
-    private RViewAdapter adapter;
-    private DbUtils dbUtils;
-    private RssNewsUtils rssUtils;
+//    private static final String TAG = "log_List";
+
+    /**
+     * The RecyclerView which shows a list of news
+     */
+    private RecyclerView mRecyclerView;
+
+    /**
+     * A adapter which adapts data with {@link #mRecyclerView}
+     */
+    private MyRecyclerViewAdapter mAdapter;
+
+    /**
+     * A utilities object that works with database
+     */
+    private DatabaseUtils mDatabaseUtils;
+
+    /**
+     * A utilities object that allow downloading RSS
+     */
+    private RssNewsUtils mRssUtils;
+
+    /**
+     * Flag mark if the list must be refreshed against
+     */
     private boolean refreshFlag = false;
+
+    /**
+     * ProgressBar that will be showed if list of content is being loaded
+     */
     private ProgressBar mProgressBar;
 
-    private String rssLink = "http://nld.com.vn/tin-moi-nhat.rss";
-
+    /**
+     * The current RSS link.
+     */
+    private String mRssLink = "http://nld.com.vn/tin-moi-nhat.rss";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -49,7 +79,8 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.frag_news_list, null);
         return v;
     }
@@ -59,14 +90,14 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
         super.onViewCreated(view, savedInstanceState);
         String savedRssLink = OptionsUtils.getSelectedRss(getActivity());
         if (savedRssLink != null) {
-            rssLink = savedRssLink;
+            mRssLink = savedRssLink;
         }
-        recyclerView = (RecyclerView) view.findViewById(R.id.rView);
-        dbUtils = new DbUtils(getActivity(), this);
-        rssUtils = new RssNewsUtils(getActivity(), this);
-        adapter = new RViewAdapter(rssUtils);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()) {
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.rView);
+        mDatabaseUtils = new DatabaseUtils(getActivity(), this);
+        mRssUtils = new RssNewsUtils(getActivity(), this);
+        mAdapter = new MyRecyclerViewAdapter(mRssUtils);
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()) {
             @Override
             public RecyclerView.LayoutParams generateDefaultLayoutParams() {
                 RecyclerView.LayoutParams params = super.generateDefaultLayoutParams();
@@ -77,30 +108,38 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
         mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar2);
     }
 
-    public boolean isRefreshFlag() {
-        return refreshFlag;
-    }
-
+    /**
+     * Mark if the content should be refresh against or not.
+     *
+     * @param refreshFlag the value of the flag
+     */
     public void setRefreshFlag(boolean refreshFlag) {
         this.refreshFlag = refreshFlag;
     }
 
+
+    /**
+     * Load the news store in database.<br/>
+     * If the current RSS is changed, mark refreshFlag, make sure the list of newses refresh against
+     */
     @Override
     public void onResume() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mDatabaseUtils.startLoadNewses();
         String savedRssLink = OptionsUtils.getSelectedRss(getActivity());
-        if (savedRssLink != null && !savedRssLink.equals(rssLink)) {
-            rssLink = savedRssLink;
-            refresh();
+        if (savedRssLink != null && !savedRssLink.equals(mRssLink)) {
+            mRssLink = savedRssLink;
+            refreshFlag = true;
         }
-        Log.d(TAG, "onResume link=" + savedRssLink);
-        adapter.notifyDataSetChanged();
-        dbUtils.startLoadNews();
         super.onResume();
     }
 
+    /**
+     * Save newses to database
+     */
     @Override
     public void onPause() {
-        dbUtils.storeNewsList(adapter.getListOfNews());
+        mDatabaseUtils.storeNewsList(mAdapter.getNewses());
         super.onPause();
     }
 
@@ -111,12 +150,7 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         switch (id) {
             case R.id.action_options:
                 Intent intent = new Intent(getActivity(), OptionsActivity.class);
@@ -126,40 +160,73 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
                 refresh();
                 return true;
             case R.id.action_about:
-                OptionPane.showMessageDialog(getActivity(), "About me", "This app was written by Điệp Esc");
+                OptionPane.showMessageDialog(getActivity(), "About me",
+                        "This app was written by Điệp Esc");
                 return true;
         }
-
-
         return super.onOptionsItemSelected(item);
     }
 
-    private void refresh() {
+    /**
+     * Refresh the list of newses. Load it against from {@link #mRssLink}
+     */
+    public void refresh() {
         mProgressBar.setVisibility(View.VISIBLE);
-        rssUtils.startGetNews(rssLink);
+        mRssUtils.startGetNews(mRssLink);
     }
 
-    public void setOnItemActionListener(RViewAdapter.OnItemActionsListener listener) {
-        adapter.setOnItemActionListener(listener);
+    /**
+     * Delegate from {@link
+     * MyRecyclerViewAdapter#setOnItemActionListener(MyRecyclerViewAdapter.OnItemActionsListener)}
+     *
+     * @param listener The listener to register for RecyclerView item click event.
+     */
+    public void setOnItemActionListener(MyRecyclerViewAdapter.OnItemActionsListener listener) {
+        mAdapter.setOnItemActionListener(listener);
     }
 
+    /**
+     * Delegate from {@link MyRecyclerViewAdapter#isRefreshItemEnable()}
+     *
+     * @return enable state of the refresh item on the RecyclerView.
+     * @see MyRecyclerViewAdapter#ITEM_TYPE_REFRESH_ITEM
+     */
+    public boolean isRefreshItemEnable() {
+        return mAdapter.isRefreshItemEnable();
+    }
+
+    /**
+     * Delegate from {@link MyRecyclerViewAdapter#setRefreshItemEnable(boolean)}
+     *
+     * @see MyRecyclerViewAdapter#ITEM_TYPE_REFRESH_ITEM
+     */
+    public void setRefreshItemEnable(boolean refreshItemEnable) {
+        mAdapter.setRefreshItemEnable(refreshItemEnable);
+    }
+
+    /**
+     * This method will be called when a list of news was loaded completely
+     *
+     * @param newses The list of newses has just loaded
+     */
     @Override
-    public void receivedNews(ArrayList<News> news) {
+    public void onReceivedNews(ArrayList<News> newses) {
+        mProgressBar.setVisibility(View.INVISIBLE);
         if (refreshFlag) {
             refreshFlag = false;
             refresh();
         } else {
-            for (int i = news.size() - 1; i >= 0; i--) {
-                News newNews = news.get(i);
-                for (int j = adapter.getListOfNews().size() - 1; j >= 0; j--) {
-                    News oldNew = adapter.getListOfNews().get(j);
+            for (int i = newses.size() - 1; i >= 0; i--) {
+                News newNews = newses.get(i);
+                for (int j = mAdapter.getNewses().size() - 1; j >= 0; j--) {
+                    News oldNew = mAdapter.getNewses().get(j);
                     if (newNews.equals(oldNew)) {
                         String oldImgPath = oldNew.getImagePath();
                         File oldImgFile = new File(oldImgPath);
                         if (oldImgFile.exists()) {
                             String newPath;
                             if (i != j) {
-                                newPath = rssUtils.generateImgPath(i + ".jpg");
+                                newPath = mRssUtils.generateImgPath(i + ".jpg");
                                 File newFile = new File(newPath);
                                 if (newFile.exists()) newFile.delete();
                                 oldImgFile.renameTo(newFile);
@@ -173,36 +240,51 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
                     }
                 }
             }
-            mProgressBar.setVisibility(View.INVISIBLE);
 
         }
-        adapter.setListOfNews(news);
+        mAdapter.setNewses(newses);
     }
 
+    /**
+     * This method will be called when an exception occur while loading newses from database
+     *
+     * @param exception An exception to be handled
+     */
     @Override
-    public void receivedException(Exception exception) {
+    public void onReceivedException(Exception exception) {
         OptionPane.showMessageDialog(getActivity(), "An exception occur", exception.getMessage()
                 + ".\n" + (exception.getCause() != null
                 ? "Cause: " + exception.getCause().getMessage() : ""));
         mProgressBar.setVisibility(View.INVISIBLE);
     }
 
+    /**
+     * This method will be called when an VolleyError occur while downloading RSS or images
+     *
+     * @param error An error to be handled
+     */
     @Override
-    public void receivedError(VolleyError error) {
-        OptionPane.showMessageDialog(getActivity(), "An error occur", "Can't download resource. Reason: " + error.getMessage());
+    public void onReceivedError(VolleyError error) {
+        OptionPane.showMessageDialog(getActivity(), "An error occur",
+                "Can't download resource. Reason: " + error.getMessage());
         mProgressBar.setVisibility(View.INVISIBLE);
     }
 
+    /**
+     * This method will be called when an image has been downloaded completed and attach to news
+     *
+     * @param itemIndex the index of the news in the list
+     */
     @Override
-    public void imageAttached(int itemIndex) {
-        adapter.notifyDataSetChanged();
+    public void onImageAttached(int itemIndex) {
+        mAdapter.notifyDataSetChanged();
     }
 
 
     @Override
     public void onDestroy() {
-        for (int i = 0; i < adapter.getListOfNews().size(); i++) {
-            Bitmap bitmap = adapter.getListOfNews().get(i).getImage();
+        for (int i = 0; i < mAdapter.getNewses().size(); i++) {
+            Bitmap bitmap = mAdapter.getNewses().get(i).getImage();
             if (bitmap != null && !bitmap.isRecycled()) bitmap.recycle();
         }
         super.onDestroy();

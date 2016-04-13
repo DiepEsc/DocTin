@@ -1,14 +1,7 @@
 package diep.esc.doctin.util;
 
 import android.graphics.Bitmap;
-import android.util.Log;
-import android.util.Xml;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,38 +9,107 @@ import java.util.regex.Pattern;
  * Created by Diep on 29/03/2016.
  */
 public class News {
-    private static final String TAG="log_News";
+//    private static final String TAG="log_News";
+
+    /**
+     * Title of the news
+     */
     private String title;
+    /**
+     * publish time of the news
+     */
     private String time;
+    /**
+     * summary of the news
+     */
     private String summary;
+    /**
+     * image contains in summary of the news
+     */
     private String imageUrl;
+    /**
+     * The link of the news
+     */
     private String url;
-	//dhdhdhdhdhd
+    /**
+     * Bitmap image for this news
+     */
     private Bitmap image;
+    /**
+     * Image path to save or load Bitmap image
+     */
     private String imagePath;
+    /**
+     * Mark if this news has read or not.
+     */
     private boolean hasRead;
 
+    /**
+     * A constructor with full field
+     */
     public News(String url, String title, String time, String summary, String imageUrl, String imagePath, boolean hasRead) {
-        this.url=url;
+        this.url = url;
         this.title = title;
         this.time = time;
         this.summary = summary;
-        this.imageUrl=imageUrl;
-        image=null;
-        this.imagePath=imagePath;
-        this.hasRead=hasRead;
+        this.imageUrl = imageUrl;
+        image = null;
+        this.imagePath = imagePath;
+        this.hasRead = hasRead;
     }
 
+    /**
+     * A constructor with no argument. Default field are empty String or false value
+     */
     public News() {
-        this("","","","","","",false);
+        this("", "", "", "", "", "", false);
     }
 
+    /**
+     * Extract the description to {@link #summary} text and image link ({@see #imageUrl})
+     *
+     * @param text the input description
+     */
+    public void extractAndSetDescription(String text) {
+        text = text.replaceFirst("<ul>.+</ul>", "");
+        Matcher matcher = Pattern.compile("src=(\"[^\"]+|[^ ]+)").matcher(text);
+        if (matcher.find()) {
+            String t = matcher.group();
+            if (t.charAt(4) == '"') {
+                imageUrl = t.substring(5);
+            } else imageUrl = t.substring(4);
+        }
+        matcher = getSummaryFilter().matcher(text);
+        while (matcher.find()) {
+            if (summary.length() != 0) {
+                summary = summary + " ";
+            }
+            String found = matcher.group();
+            int start = found.indexOf('>') + 1;
+            int end = found.lastIndexOf('<');
+            if (start < 0) start = 0;
+            if (end <= 0) end = found.length();
+            found = found.substring(start, end);
+            summary = summary + found.trim();
+        }
+    }
+
+    /**
+     * Get regex {@link Pattern} for extractAndSetDescription to identify the image url
+     * contains in description
+     *
+     * @return the Pattern to identify the image url
+     */
     public String getUrl() {
         return url;
     }
 
+    protected Pattern getSummaryFilter() {
+        return Pattern.compile("(^|>)[^<]+(<|$)");
+    }
+
     public void setUrl(String url) {
-        if(url!=null&&url.length()>0) this.url = url;
+        if (url != null && url.length() > 0) this.url = url;
     }
 
     public String getTitle() {
@@ -68,64 +130,6 @@ public class News {
 
     public String getSummary() {
         return summary;
-    }
-
-    public void extractAndSetDescription(String text){
-        text=text.replaceFirst("<ul>.+</ul>","");
-        Matcher matcher=Pattern.compile("src=(\"[^\"]+|[^ ]+)").matcher(text);
-        if(matcher.find()){
-            String t=matcher.group();
-            if(t.charAt(4)=='"'){
-                imageUrl=t.substring(5);
-            }
-            else imageUrl=t.substring(4);
-        }
-        Log.d(TAG, "extractAndSetDescription "+imageUrl);
-        matcher=getSummaryFilter().matcher(text);
-        while (matcher.find()){
-            if(summary.length()!=0){
-                summary=summary+" ";
-            }
-            String found=matcher.group();
-            int start=found.indexOf('>')+1;
-            int end=found.lastIndexOf('<');
-            if(start<0) start=0;
-            if(end<=0) end=found.length();
-//            Log.d("log_N", "extractAndSetDescription "+found);
-            found=found.substring(start,end);
-            summary=summary+found.trim();
-        }
-    }
-    protected Pattern getSummaryFilter(){
-        return Pattern.compile("(^|>)[^<]+(<|$)");
-    }
-    public void extractAndSetDescription2(String text){
-        text="<esc>"+text+"</esc>";
-        Log.d("D_log", "text: "+text);
-        XmlPullParser parser= Xml.newPullParser();
-        try {
-            parser.setInput(new StringReader(text));
-            while (parser.getEventType()!=XmlPullParser.END_DOCUMENT){
-                if(parser.getEventType()==XmlPullParser.START_TAG){
-                    if("esc".equals(parser.getName())){
-                        summary=parser.getText();
-                    }
-                    else if("img".equals(parser.getName())){
-                        for(int i=0;i<parser.getAttributeCount();i++){
-                            if("src".equals(parser.getAttributeName(i))){
-                                imageUrl=parser.getAttributeValue(i);
-                            }
-                        }
-                        break;
-                    }
-                }
-                parser.next();
-            }
-        } catch (XmlPullParserException e) {
-            throw new RssLoadingException("Failed to parse XML",e);
-        } catch (IOException e) {
-            throw new RssLoadingException("Failed to parse XML",e);
-        }
     }
 
     public String getImageUrl() {
@@ -158,8 +162,7 @@ public class News {
 
     @Override
     public boolean equals(Object o) {
-        if(o==null||!(o instanceof News)) return false;
-        //Log.d("log_M", "equals "+(((News)o).url.equals(url)));
-        return ((News)o).url.equals(url);
+        if (o == null || !(o instanceof News)) return false;
+        return ((News) o).url.equals(url);
     }
 }

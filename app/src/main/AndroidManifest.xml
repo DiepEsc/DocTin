@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme"
         >
         <activity
-            android:name=".gui.MainActivity"
+            android:name=".gui.NewsReaderActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -19,6 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".gui.NewsReaderActivity"/>
+
+        <activity android:name=".gui.OptionsActivity" android:label="Options"/>
     </application>
 </manifest>

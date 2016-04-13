@@ -11,9 +11,9 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
-        android:minWidth="80dp"
-        android:minHeight="80dp"
-        android:layout_marginRight="6dp"
+        android:maxWidth="@dimen/news_img_size"
+        android:maxHeight="@dimen/news_img_size"
+        android:layout_marginRight="@dimen/news_img_view_padding"
         android:layout_height="wrap_content" />
 
     <TextView
@@ -21,17 +21,17 @@
         android:id="@+id/news_title"
         android:text="Title"
         android:layout_toRightOf="@id/imageView"
-        android:textSize="15dp"
-        android:textColor="#0064bb"
+        android:textSize="@dimen/news_title"
+        android:textColor="@color/news_title"
         android:layout_height="wrap_content" />
     <TextView
         android:layout_width="wrap_content"
-        android:text="Dân Trí > Khoa học : 10/2/2016 6:30 PM"
+        android:text="10/2/2016 6:30 PM"
         android:layout_height="wrap_content"
         android:id="@+id/news_time_site_category"
         android:layout_below="@+id/news_title"
-        android:textSize="9dp"
-        android:textColor="#916e89"
+        android:textSize="@dimen/news_pub_date"
+        android:textColor="@color/news_pub_date"
         android:layout_toRightOf="@id/imageView"
         android:layout_toEndOf="@id/imageView" />
     <TextView
@@ -39,7 +39,7 @@
         android:text="summary\n update"
         android:layout_height="wrap_content"
         android:id="@+id/news_summary"
-        android:textSize="11dp"
+        android:textSize="@dimen/news_summary"
         android:layout_below="@id/news_time_site_category"
         android:layout_toRightOf="@id/imageView"
         android:layout_toEndOf="@id/imageView" />
