@@ -112,6 +112,8 @@ public class NewsReaderActivity extends AppCompatActivity
 
         setupHomeButton();
 
+        mNewsListFragment.setHasOptionsMenu(true);
+        mNewsListFragment.setOnItemActionListener(this);
         if (savedInstanceState == null) mNewsListFragment.setRefreshFlag(true);
 
     }
@@ -157,8 +159,6 @@ public class NewsReaderActivity extends AppCompatActivity
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDrawerToggle.syncState();
-        mNewsListFragment.setHasOptionsMenu(true);
-        mNewsListFragment.setOnItemActionListener(this);
     }
 
 
@@ -209,7 +209,7 @@ public class NewsReaderActivity extends AppCompatActivity
      *
      * @param url News Url
      */
-    private void webView_loadUrl(String url) {
+    private void loadUrl(String url) {
         mWebViewPageLoaded = false;
         mProgressBar.setVisibility(View.VISIBLE);
         mWebView.loadUrl(url);
@@ -249,7 +249,7 @@ public class NewsReaderActivity extends AppCompatActivity
                 return true;
             case R.id.action_refresh:
                 if (mReadingState) {
-                    webView_loadUrl(selectedUrl);
+                    loadUrl(selectedUrl);
                     return true;
                 }
         }
@@ -281,7 +281,7 @@ public class NewsReaderActivity extends AppCompatActivity
         if (itemType == MyRecyclerViewAdapter.ITEM_TYPE_NEWS) {
             news.setHasRead(true);
             if (!mReadingState) switchState();
-            webView_loadUrl(news.getUrl());
+            loadUrl(news.getUrl());
             mDrawerLayout.closeDrawer(Gravity.LEFT);
         } else {
             mNewsListFragment.refresh();

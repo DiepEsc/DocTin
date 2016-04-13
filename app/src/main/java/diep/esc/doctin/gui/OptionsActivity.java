@@ -1,7 +1,10 @@
 package diep.esc.doctin.gui;
 
 import android.os.Bundle;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ActionBarContainer;
+import android.view.MenuItem;
 import android.widget.ExpandableListView;
 
 import diep.esc.doctin.R;
@@ -30,6 +33,15 @@ public class OptionsActivity extends AppCompatActivity {
         mAdapter = new MyExpandableListAdapter(this, RssSource.loadDefault(this));
         mAdapter.setSelectedRss(OptionsUtils.getSelectedRss(this));
         mExpandableListView.setAdapter(mAdapter);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId()==android.R.id.home){
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
