@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="expandable_list_item">#fcf2ff</color>
+    <color name="news_title">#0064bb</color>
+    <color name="news_pub_date">#916e89</color>
+
+    <color name="item_normal">#f7f7f7</color>
+    <color name="item_normal_old">#d3d3d3</color>
+    <color name="item_normal_stroke">#cacaca</color>
+    <color name="item_pressed">#dcfff5</color>
+    <color name="item_pressed_stroke">#f3f3f3</color>
+</resources>

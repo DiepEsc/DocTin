@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">DocTin</string>
-
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_options">Options</string>
 </resources>

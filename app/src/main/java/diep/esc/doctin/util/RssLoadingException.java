@@ -1,4 +1,4 @@
-package diep.esc.demo.util;
+package diep.esc.doctin.util;
 
 /**
  * Created by Diep on 29/03/2016.

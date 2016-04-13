@@ -1,4 +1,4 @@
-package diep.esc.demo.doctin;
+package diep.esc.doctin;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
