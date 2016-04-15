@@ -69,7 +69,7 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
     /**
      * The current RSS link.
      */
-    private String mRssLink = "http://nld.com.vn/tin-moi-nhat.rss";
+    private String mRssLink = "http://vtv.vn/trong-nuoc.rss";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -81,8 +81,7 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.frag_news_list, null);
-        return v;
+        return inflater.inflate(R.layout.frag_news_list, null);
     }
 
     @Override
@@ -286,6 +285,7 @@ public class NewsListFragment extends Fragment implements NewsReceiveListener {
         for (int i = 0; i < mAdapter.getNewses().size(); i++) {
             Bitmap bitmap = mAdapter.getNewses().get(i).getImage();
             if (bitmap != null && !bitmap.isRecycled()) bitmap.recycle();
+            mAdapter.getNewses().get(i).setImage(null);
         }
         super.onDestroy();
     }
