@@ -26,7 +26,7 @@ import diep.esc.doctin.util.News;
 
 /**
  * This is main activity.
- * This activity show a list of newses via {@link NewsListFragment} and news content by
+ * This activity show a list of newses via a {@link NewsListFragment} and news content by
  * {@link WebView}
  * <br/>
  * Created by Diep on 31/03/2016.

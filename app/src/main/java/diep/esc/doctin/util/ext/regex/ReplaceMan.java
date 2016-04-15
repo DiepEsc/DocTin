@@ -1,7 +1,11 @@
 package diep.esc.doctin.util.ext.regex;
 
+import java.util.regex.Matcher;
+
 /**
- * Created by Diep on 01/04/2016.
+ * This interface provide a callback to be call while using
+ * {@link RegexExtUtil#replaceAll(Matcher, ReplaceMan, int)}
+ * @author Diep
  */
 public interface ReplaceMan {
 
@@ -11,5 +15,5 @@ public interface ReplaceMan {
      * @param source The String that will be replaced by the result of this method
      * @return Replacement String for the given String
      */
-    public String getReplacement(String source);
+    String getReplacement(String source);
 }

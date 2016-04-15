@@ -18,11 +18,11 @@
             android:layout_gravity="center" />
     </RelativeLayout>
 
-        <fragment
-            android:id="@+id/frag"
-            android:name="diep.esc.doctin.gui.NewsListFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="start" />
+    <fragment
+        android:id="@+id/frag"
+        android:name="diep.esc.doctin.gui.NewsListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start" />
 
 </android.support.v4.widget.DrawerLayout>

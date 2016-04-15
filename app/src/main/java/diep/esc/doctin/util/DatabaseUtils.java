@@ -48,7 +48,7 @@ public class DatabaseUtils {
     }
 
     /**
-     * Start a task that loading newses
+     * Start a task that loading newses from database
      */
     public void startLoadNewses() {
         new LoadingNewTask().execute();

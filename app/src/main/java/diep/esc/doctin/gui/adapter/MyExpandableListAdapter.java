@@ -1,6 +1,7 @@
 package diep.esc.doctin.gui.adapter;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Patterns;
 import android.view.View;
 import android.view.ViewGroup;
@@ -91,8 +92,10 @@ public class MyExpandableListAdapter extends BaseExpandableListAdapter {
      * @param map A hash map which keys are rss provider name and values are RssSource lists
      * @return A list of rss provider's name
      */
-    private static final ArrayList<String> extractKeyList(HashMap<String, List<RssSource>> map) {
-        ArrayList<String> list = new ArrayList(map.size());
+    @NonNull
+    private static ArrayList<String> extractKeyList(
+            @NonNull HashMap<String, List<RssSource>> map) {
+        ArrayList<String> list = new ArrayList<String>(map.size());
         Iterator<String> iterator = map.keySet().iterator();
         while (iterator.hasNext()) {
             list.add(iterator.next());
